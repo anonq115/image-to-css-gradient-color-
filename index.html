@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Image Color and Gradient Generator</title>
+    <style>
+        #drop-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+        }
+        .color-display {
+            margin-top: 20px;
+            padding: 10px;
+            color: black;
+        }
+        #color {
+            background-color: white;
+        }
+        #gradient {
+            height: 50px;
+            border: 1px solid #ccc;
+            color: black;
+            word-wrap: break-word;
+        }
+    </style>
+</head>
+<body>
+    <div id="drop-area">Drop an image here or click to select</div>
+    <div id="color" class="color-display">Dominant Color will be displayed here</div>
+    <div id="gradient" class="color-display">Gradient will be displayed here</div>
+
+    <script>
+        document.getElementById('drop-area').addEventListener('dragover', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+        });
+
+        document.getElementById('drop-area').addEventListener('drop', function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            const file = event.dataTransfer.files[0];
+            processImage(file);
+        });
+
+        document.getElementById('drop-area').addEventListener('click', function(event) {
+            const fileInput = document.createElement('input');
+            fileInput.type = 'file';
+            fileInput.accept = 'image/*';
+            fileInput.onchange = e => {
+                processImage(e.target.files[0]);
+            };
+            fileInput.click();
+        });
+
+        function processImage(file) {
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                const img = new Image();
+                img.onload = function() {
+                    const color = getDominantColor(img);
+                    const gradient = createGradient(img);
+                    displayColor(color);
+                    displayGradient(gradient);
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function getDominantColor(image) {
+            return getColorFromImage(image, 0, 0, image.width, image.height);
+        }
+
+        function createGradient(image) {
+            const sectionCount = 10;
+            const sectionWidth = image.width / sectionCount;
+            let gradientString = 'linear-gradient(to right';
+
+            for (let i = 0; i < sectionCount; i++) {
+                const color = getColorFromImage(image, i * sectionWidth, 0, sectionWidth, image.height);
+                gradientString += `, ${color}`;
+            }
+
+            gradientString += ')';
+            return gradientString;
+        }
+
+        function getColorFromImage(image, startX, startY, width, height) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(image, startX, startY, width, height, 0, 0, width, height);
+
+            const imageData = ctx.getImageData(0, 0, width, height);
+            const data = imageData.data;
+            let r = 0, g = 0, b = 0;
+
+            for (let i = 0; i < data.length; i += 4) {
+                r += data[i];
+                g += data[i + 1];
+                b += data[i + 2];
+            }
+
+            r = Math.floor(r / (data.length / 4));
+            g = Math.floor(g / (data.length / 4));
+            b = Math.floor(b / (data.length / 4));
+
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        function displayColor(color) {
+            const colorDisplay = document.getElementById('color');
+            colorDisplay.style.backgroundColor = color;
+            colorDisplay.textContent = `Dominant Color: ${color}`;
+        }
+
+        function displayGradient(gradient) {
+            const gradientDisplay = document.getElementById('gradient');
+            gradientDisplay.style.backgroundImage = gradient;
+            gradientDisplay.textContent = gradient;
+            gradientDisplay.style.color = 'black';
+        }
+    </script>
+</body>
+</html>
