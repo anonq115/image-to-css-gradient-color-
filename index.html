@@ -14,6 +14,7 @@
             margin-top: 20px;
             padding: 10px;
             color: black;
+            cursor: pointer;
         }
         #color {
             background-color: white;
@@ -21,15 +22,13 @@
         #gradient {
             height: 50px;
             border: 1px solid #ccc;
-            color: black;
-            word-wrap: break-word;
         }
     </style>
 </head>
 <body>
     <div id="drop-area">Drop an image here or click to select</div>
-    <div id="color" class="color-display">Dominant Color will be displayed here</div>
-    <div id="gradient" class="color-display">Gradient will be displayed here</div>
+    <div id="color" class="color-display" title="Click to copy color"></div>
+    <div id="gradient" class="color-display" title="Click to copy gradient"></div>
 
     <script>
         document.getElementById('drop-area').addEventListener('dragover', function(event) {
@@ -54,15 +53,17 @@
             fileInput.click();
         });
 
+        let currentColor = '', currentGradient = '';
+
         function processImage(file) {
             const reader = new FileReader();
             reader.onload = function(event) {
                 const img = new Image();
                 img.onload = function() {
-                    const color = getDominantColor(img);
-                    const gradient = createGradient(img);
-                    displayColor(color);
-                    displayGradient(gradient);
+                    currentColor = getDominantColor(img);
+                    currentGradient = createGradient(img);
+                    displayColor(currentColor);
+                    displayGradient(currentGradient);
                 };
                 img.src = event.target.result;
             };
@@ -114,14 +115,30 @@
         function displayColor(color) {
             const colorDisplay = document.getElementById('color');
             colorDisplay.style.backgroundColor = color;
-            colorDisplay.textContent = `Dominant Color: ${color}`;
         }
 
         function displayGradient(gradient) {
             const gradientDisplay = document.getElementById('gradient');
             gradientDisplay.style.backgroundImage = gradient;
-            gradientDisplay.textContent = gradient;
-            gradientDisplay.style.color = 'black';
+        }
+
+        document.getElementById('color').addEventListener('click', function() {
+            copyToClipboard(currentColor);
+            alert('Color copied to clipboard: ' + currentColor);
+        });
+
+        document.getElementById('gradient').addEventListener('click', function() {
+            copyToClipboard(currentGradient);
+            alert('Gradient copied to clipboard: ' + currentGradient);
+        });
+
+        function copyToClipboard(text) {
+            const textarea = document.createElement('textarea');
+            textarea.value = text;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
         }
     </script>
 </body>
