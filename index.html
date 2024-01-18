@@ -15,20 +15,46 @@
             padding: 10px;
             color: black;
             cursor: pointer;
+            position: relative;
+            height: 50px;
+            border: 1px solid #ccc;
+        }
+        .tooltip {
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            margin-left: -50px;
+            padding: 5px;
+            background-color: black;
+            color: white;
+            text-align: center;
+            border-radius: 5px;
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .color-display:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
         }
         #color {
             background-color: white;
         }
         #gradient {
-            height: 50px;
-            border: 1px solid #ccc;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div id="drop-area">Drop an image here or click to select</div>
-    <div id="color" class="color-display" title="Click to copy color"></div>
-    <div id="gradient" class="color-display" title="Click to copy gradient"></div>
+    <div id="color" class="color-display hidden">
+        <span class="tooltip">Copy to Clipboard</span>
+    </div>
+    <div id="gradient" class="color-display hidden">
+        <span class="tooltip">Copy to Clipboard</span>
+    </div>
 
     <script>
         document.getElementById('drop-area').addEventListener('dragover', function(event) {
@@ -64,6 +90,7 @@
                     currentGradient = createGradient(img);
                     displayColor(currentColor);
                     displayGradient(currentGradient);
+                    showCopyLabels();
                 };
                 img.src = event.target.result;
             };
@@ -122,14 +149,17 @@
             gradientDisplay.style.backgroundImage = gradient;
         }
 
+        function showCopyLabels() {
+            document.getElementById('color').classList.remove('hidden');
+            document.getElementById('gradient').classList.remove('hidden');
+        }
+
         document.getElementById('color').addEventListener('click', function() {
             copyToClipboard(currentColor);
-            alert('Color copied to clipboard: ' + currentColor);
         });
 
         document.getElementById('gradient').addEventListener('click', function() {
             copyToClipboard(currentGradient);
-            alert('Gradient copied to clipboard: ' + currentGradient);
         });
 
         function copyToClipboard(text) {
